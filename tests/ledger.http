@@ -1,0 +1,43 @@
+### Test 1: Buat Jurnal Seimbang (Harus Berhasil)
+POST http://localhost:3000/api/ledger/draft
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyYzhjNGE3LWJiZmEtNGNlNC1iZmJjLTJhZTdmN2I0M2YzOCIsInVzZXJuYW1lIjoibWFrZXJfYXJpIiwicm9sZSI6Ik1ha2VyIiwiaWF0IjoxNzg1NDA1NDA1LCJleHAiOjE3ODU0MzQyMDV9.ks6Oe2W4N5SltoJMHxW27TyULAtbvVTAs6ou2JuAx-U
+
+{
+    "reference_number": "JRN-2026-006",
+    "transaction_date": "2026-07-29",
+    "lines": [
+        {
+            "account_id": "33333333-3333-3333-3333-333333333333", 
+            "debit": 500000.00,
+            "credit": 0
+        },
+        {
+            "account_id": "11111111-1111-1111-1111-111111111111", 
+            "debit": 0,
+            "credit": 500000.00
+        }
+    ]
+}
+
+### Test 2: Buat Jurnal TIDAK Seimbang (Harus Ditolak oleh Server)
+POST http://localhost:3000/api/ledger/draft
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyYzhjNGE3LWJiZmEtNGNlNC1iZmJjLTJhZTdmN2I0M2YzOCIsInVzZXJuYW1lIjoibWFrZXJfYXJpIiwicm9sZSI6Ik1ha2VyIiwiaWF0IjoxNzg0OTY2OTkwLCJleHAiOjE3ODQ5OTU3OTB9.rjtFweTlKg5dl3AfPc_IPrscF-5PPzkQyLvokNjbsKM
+
+{
+    "reference_number": "JRN-2026-004",
+    "transaction_date": "2026-07-26",
+    "lines": [
+        {
+            "account_id": "33333333-3333-3333-3333-333333333333", 
+            "debit": 500000.00,
+            "credit": 0
+        },
+        {
+            "account_id": "11111111-1111-1111-1111-111111111111", 
+            "debit": 0,
+            "credit": 400000.00 
+        }
+    ]
+}

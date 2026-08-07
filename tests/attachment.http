@@ -1,0 +1,15 @@
+### Test 1: Upload Bukti Transaksi
+POST http://localhost:3000/api/attachments/upload
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyYzhjNGE3LWJiZmEtNGNlNC1iZmJjLTJhZTdmN2I0M2YzOCIsInVzZXJuYW1lIjoibWFrZXJfYXJpIiwicm9sZSI6Ik1ha2VyIiwiaWF0IjoxNzg1NDA1OTU0LCJleHAiOjE3ODU0MzQ3NTR9.rzNoEqIzRaqxRvb2KA8uncKfpffCbSXpr6spEpLG6RA
+Content-Type: multipart/form-data; boundary=----BatasPemisahData
+
+------BatasPemisahData
+Content-Disposition: form-data; name="journal_id"
+
+fb68a0f8-4380-4e1a-892f-3c289feff07c
+------BatasPemisahData
+Content-Disposition: form-data; name="file"; filename="bukti_transfer.jpg"
+Content-Type: image/jpeg
+
+< ./bukti_transfer.jpg
+------BatasPemisahData--

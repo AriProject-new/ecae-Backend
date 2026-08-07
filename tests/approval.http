@@ -1,0 +1,24 @@
+### Test 1: Maker Mengajukan Jurnal
+POST http://localhost:3000/api/approval/4a547572-baf9-4b36-8c5c-bfc57e6d1705/submit
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyYzhjNGE3LWJiZmEtNGNlNC1iZmJjLTJhZTdmN2I0M2YzOCIsInVzZXJuYW1lIjoibWFrZXJfYXJpIiwicm9sZSI6Ik1ha2VyIiwiaWF0IjoxNzg1NDAzNzExLCJleHAiOjE3ODU0MzI1MTF9.stx7KK79h6N7DNmUxKm6d_noR5xQaVZZPX1gcwqT64g
+
+
+### Test 2: Checker Menolak Jurnal Tanpa Alasan (Harus Gagal)
+POST http://localhost:3000/api/approval/4a547572-baf9-4b36-8c5c-bfc57e6d1705/process
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBhZjVkZGU1LWJlY2UtNGYzMC1hMGE4LTAzNWE4OGQ0YzM1YyIsInVzZXJuYW1lIjoiY2hlY2tlcl9idWRpIiwicm9sZSI6IkNoZWNrZXIiLCJpYXQiOjE3ODU0MDMzODcsImV4cCI6MTc4NTQzMjE4N30.eVCiuTN8sgbI3llPSZccuP143zXXZ9yzDo-U3UpUwWQ
+
+{
+    "action": "REJECT",
+    "rejection_reason": "Salah Aja"
+}
+
+
+### Test 3: Checker Menyetujui Jurnal (Menjadi POSTED)
+POST http://localhost:3000/api/approval/4a547572-baf9-4b36-8c5c-bfc57e6d1705/process
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBhZjVkZGU1LWJlY2UtNGYzMC1hMGE4LTAzNWE4OGQ0YzM1YyIsInVzZXJuYW1lIjoiY2hlY2tlcl9idWRpIiwicm9sZSI6IkNoZWNrZXIiLCJpYXQiOjE3ODU0MDMzODcsImV4cCI6MTc4NTQzMjE4N30.eVCiuTN8sgbI3llPSZccuP143zXXZ9yzDo-U3UpUwWQ
+
+{
+    "action": "APPROVE"
+}

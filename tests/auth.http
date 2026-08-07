@@ -1,0 +1,23 @@
+### Test 1: Login sebagai Maker (Berhasil)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "maker_ari"
+}
+
+### Test 2: Login sebagai Checker (Berhasil)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "checker_budi"
+}
+
+### Test 3: Login User Tidak Terdaftar (Harus Gagal)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "hacker_jahat"
+}

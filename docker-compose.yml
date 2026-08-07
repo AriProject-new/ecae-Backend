@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: ecae_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ecae_admin
+      POSTGRES_PASSWORD: supersecretpassword123
+      POSTGRES_DB: ecae_ledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - ecae_pg_data:/var/lib/postgresql/data
+
+volumes:
+  ecae_pg_data:

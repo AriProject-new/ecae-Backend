@@ -1,0 +1,11 @@
+### Test 1: Upload CSV Mutasi Bank
+POST http://localhost:3000/api/reconciliation/match
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBhZjVkZGU1LWJlY2UtNGYzMC1hMGE4LTAzNWE4OGQ0YzM1YyIsInVzZXJuYW1lIjoiY2hlY2tlcl9idWRpIiwicm9sZSI6IkNoZWNrZXIiLCJpYXQiOjE3ODU0MDY4NTAsImV4cCI6MTc4NTQzNTY1MH0.4ZTJpMpoapmxwrPITv8S-Y1AcVaI9WFvcOr46C2MdXM
+Content-Type: multipart/form-data; boundary=----BatasPemisahCSV
+
+------BatasPemisahCSV
+Content-Disposition: form-data; name="file"; filename="mutasi_bank.csv"
+Content-Type: text/csv
+
+< ./mutasi_bank.csv
+------BatasPemisahCSV--

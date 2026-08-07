@@ -1,0 +1,19 @@
+### Test 1: Checker Mengunci Periode Juli 2026 (Harus Berhasil)
+POST http://localhost:3000/api/period/lock
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBhZjVkZGU1LWJlY2UtNGYzMC1hMGE4LTAzNWE4OGQ0YzM1YyIsInVzZXJuYW1lIjoiY2hlY2tlcl9idWRpIiwicm9sZSI6IkNoZWNrZXIiLCJpYXQiOjE3ODU0MDUxNTgsImV4cCI6MTc4NTQzMzk1OH0.OoDY6kEKRPSKKwYRBOQ3kX5Ahqqj3cOmjf4zPlMs7Qg
+
+{
+    "year": 2026,
+    "month": 7
+}
+
+### Test 2: Checker Mengunci Periode yang Sama (Harus Gagal - Duplikat)
+POST http://localhost:3000/api/period/lock
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBhZjVkZGU1LWJlY2UtNGYzMC1hMGE4LTAzNWE4OGQ0YzM1YyIsInVzZXJuYW1lIjoiY2hlY2tlcl9idWRpIiwicm9sZSI6IkNoZWNrZXIiLCJpYXQiOjE3ODU0MDUxNTgsImV4cCI6MTc4NTQzMzk1OH0.OoDY6kEKRPSKKwYRBOQ3kX5Ahqqj3cOmjf4zPlMs7Qg
+
+{
+    "year": 2026,
+    "month": 7
+}
