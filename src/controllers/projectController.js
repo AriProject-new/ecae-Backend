@@ -138,10 +138,12 @@ const updateProjectContractAndTerms = async (req, res) => {
                 if (term.is_realized) continue;
 
                 const amount = (Number(contract_value) * Number(term.percentage)) / 100;
+                
+                // Tambahkan kolom description pada kueri INSERT
                 await client.query(
-                    `INSERT INTO project_payment_terms (project_id, term_name, percentage, amount, is_realized)
-                     VALUES ($1, $2, $3, $4, FALSE)`,
-                    [projectId, term.term_name, Number(term.percentage), amount]
+                    `INSERT INTO project_payment_terms (project_id, term_name, percentage, amount, is_realized, description)
+                     VALUES ($1, $2, $3, $4, FALSE, $5)`,
+                    [projectId, term.term_name, Number(term.percentage), amount, term.description || null]
                 );
             }
         }
@@ -240,26 +242,77 @@ const restoreProject = async (req, res) => {
     }
 };
 
-// 8. Mengambil Laporan Eksekutif Untung-Rugi Proyek
+// 8. Mengambil Laporan Eksekutif Untung-Rugi Proyek (Lengkap Pemasukan, Pengeluaran & Lampiran)
 const getProjectProfitabilityReport = async (req, res) => {
     try {
         const { projectId } = req.params;
 
+        // 1. Summary Proyek
         const summaryQuery = `
             SELECT * FROM project_profitability_summary WHERE project_id = $1;
         `;
-        const categoryQuery = `
+        
+        // 2. Rincian & Deskripsi Pengeluaran (Outflow)
+        const expenseQuery = `
             SELECT 
+                l.id,
                 l.cashflow_category,
-                COALESCE(SUM(l.credit), 0) AS total_expense
+                l.description,
+                j.reference_number,
+                j.transaction_date,
+                COALESCE(l.credit, 0) AS total_expense
             FROM journal_entries j
             JOIN journal_entry_lines l ON j.id = l.journal_id
-            WHERE j.project_id = $1 AND (j.status IS NULL OR j.status <> 'PENDING_DELETION')
-            GROUP BY l.cashflow_category;
+            WHERE j.project_id = $1 
+              AND (j.status IS NULL OR j.status <> 'PENDING_DELETION')
+              AND COALESCE(l.credit, 0) > 0
+            ORDER BY j.transaction_date DESC, l.id DESC;
+        `;
+
+        // 3. Rincian & Deskripsi Pemasukan (Inflow)
+        const inflowQuery = `
+            SELECT 
+                l.id,
+                l.cashflow_category,
+                l.description,
+                j.reference_number,
+                j.transaction_date,
+                COALESCE(l.debit, 0) AS total_income
+            FROM journal_entries j
+            JOIN journal_entry_lines l ON j.id = l.journal_id
+            WHERE j.project_id = $1 
+              AND (j.status IS NULL OR j.status <> 'PENDING_DELETION')
+              AND COALESCE(l.debit, 0) > 0
+            ORDER BY j.transaction_date DESC, l.id DESC;
+        `;
+
+        // 4. Bukti & Dokumen Penguat Transaksi (Attachments)
+        const attachmentQuery = `
+            SELECT 
+                a.id,
+                a.journal_id,
+                a.file_name,
+                a.file_path,
+                a.file_type,
+                a.created_at,
+                j.reference_number
+            FROM attachments a
+            JOIN journal_entries j ON a.journal_id = j.id
+            WHERE j.project_id = $1 
+              AND (j.status IS NULL OR j.status <> 'PENDING_DELETION')
+            ORDER BY a.created_at DESC;
         `;
 
         const summaryResult = await db.query(summaryQuery, [projectId]);
-        const categoryResult = await db.query(categoryQuery, [projectId]);
+        const expenseResult = await db.query(expenseQuery, [projectId]);
+        const inflowResult = await db.query(inflowQuery, [projectId]);
+        
+        let attachmentResult = { rows: [] };
+        try {
+            attachmentResult = await db.query(attachmentQuery, [projectId]);
+        } catch (attErr) {
+            console.log('Attachment query notice:', attErr.message);
+        }
 
         if (summaryResult.rows.length === 0) {
             return res.status(404).json({ status: 'error', message: 'Data proyek tidak ditemukan.' });
@@ -269,7 +322,9 @@ const getProjectProfitabilityReport = async (req, res) => {
             status: 'success',
             data: {
                 summary: summaryResult.rows[0],
-                expense_categories: categoryResult.rows
+                expense_categories: expenseResult.rows,
+                inflow_details: inflowResult.rows,
+                attachments: attachmentResult.rows
             }
         });
     } catch (error) {

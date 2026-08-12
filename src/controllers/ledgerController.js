@@ -4,7 +4,7 @@ const db = require('../config/db');
 const createJournalDraft = async (req, res) => {
     const client = await db.connect();
     try {
-        const { reference_number, transaction_date, project_id, lines } = req.body;
+        const { reference_number, transaction_date, project_id, description, lines } = req.body;
 
         if (!reference_number || !transaction_date || !lines || lines.length === 0) {
             return res.status(400).json({ status: 'error', message: 'Nomor referensi, tanggal, dan minimal satu baris transaksi wajib diisi.' });
@@ -14,7 +14,6 @@ const createJournalDraft = async (req, res) => {
         const totalInflow = lines.reduce((sum, line) => sum + (Number(line.debit) || 0), 0);
         const totalOutflow = lines.reduce((sum, line) => sum + (Number(line.credit) || 0), 0);
 
-        // Pada versi 2.0, is_balanced selalu diset true agar tidak memblokir pencatatan kas proyek
         const isBalanced = true;
 
         const makerId = req.user?.id || req.user?.username || 'maker_ari';
@@ -22,26 +21,27 @@ const createJournalDraft = async (req, res) => {
 
         await client.query('BEGIN');
 
-        // Insert Header Cashflow Proyek
+        // Insert Header Cashflow Proyek dengan deskripsi transaksi
         const journalResult = await client.query(
-            `INSERT INTO journal_entries (reference_number, transaction_date, project_id, is_balanced, status, created_by, maker_id)
-             VALUES ($1, $2, $3, $4, 'DRAFT', $5, $6) RETURNING id`,
-            [reference_number, transaction_date, project_id || 'GENERAL', isBalanced, createdBy, makerId]
+            `INSERT INTO journal_entries (reference_number, transaction_date, project_id, description, is_balanced, status, created_by, maker_id)
+             VALUES ($1, $2, $3, $4, $5, 'DRAFT', $6, $7) RETURNING id`,
+            [reference_number, transaction_date, project_id || 'GENERAL', description || null, isBalanced, createdBy, makerId]
         );
 
         const journalId = journalResult.rows[0].id;
 
-        // Insert Rincian Baris Cashflow
+        // Insert Rincian Baris Cashflow dengan deskripsi per item pengeluaran
         for (const line of lines) {
             await client.query(
-                `INSERT INTO journal_entry_lines (journal_id, account_id, debit, credit, cashflow_category)
-                 VALUES ($1, $2, $3, $4, $5)`,
+                `INSERT INTO journal_entry_lines (journal_id, account_id, debit, credit, cashflow_category, description)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
                 [
                     journalId, 
                     line.account_id, 
                     Number(line.debit) || 0, 
                     Number(line.credit) || 0, 
-                    line.cashflow_category || 'OPERATING'
+                    line.cashflow_category || 'OPERATING',
+                    line.description || null
                 ]
             );
         }
@@ -78,13 +78,24 @@ const getAllJournals = async (req, res) => {
                 j.reference_number, 
                 j.transaction_date, 
                 j.project_id, 
+                j.description,
                 j.status, 
                 j.previous_status,
                 j.created_by,
                 j.created_at,
                 j.updated_at,
                 COALESCE(SUM(l.debit), 0) AS total_inflow,
-                COALESCE(SUM(l.credit), 0) AS total_outflow
+                COALESCE(SUM(l.credit), 0) AS total_outflow,
+                JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'id', l.id,
+                        'account_id', l.account_id,
+                        'debit', l.debit,
+                        'credit', l.credit,
+                        'cashflow_category', l.cashflow_category,
+                        'description', l.description
+                    )
+                ) FILTER (WHERE l.id IS NOT NULL) AS lines
             FROM journal_entries j
             LEFT JOIN journal_entry_lines l ON j.id = l.journal_id
             GROUP BY j.id
