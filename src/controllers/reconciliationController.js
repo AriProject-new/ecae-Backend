@@ -5,6 +5,7 @@ const db = require('../config/db');
 const reconcileCSV = async (req, res) => {
     const file = req.file;
 
+    // Validasi keberadaan file dan format CSV
     if (!file || file.mimetype !== 'text/csv') {
         if (file) fs.unlinkSync(file.path);
         return res.status(400).json({ status: 'error', message: 'File wajib berformat CSV' });
@@ -14,19 +15,19 @@ const reconcileCSV = async (req, res) => {
     const matched = [];
     const unmatched = [];
 
-    // Membaca file CSV
+    // Membaca dan memproses file CSV
     fs.createReadStream(file.path)
         .pipe(csv())
         .on('data', (data) => results.push(data))
         .on('end', async () => {
             try {
-                // Algoritma Pencocokan
+                // Algoritma Pencocokan Transaksi
                 for (const row of results) {
-                    const amount = parseFloat(row.amount); // Asumsi CSV memiliki kolom "amount"
+                    const amount = parseFloat(row.amount); // Membaca kolom "amount" dari CSV mutasi bank
 
                     if (isNaN(amount)) continue;
 
-                    // Mencari jurnal berstatus POSTED yang memiliki nilai Debit atau Kredit persis dengan amount di CSV
+                    // Mencari jurnal berstatus POSTED yang memiliki nominal Debit atau Kredit persis sama
                     const query = `
                         SELECT je.reference_number, je.transaction_date, jel.debit, jel.credit 
                         FROM journal_entry_lines jel
@@ -48,8 +49,10 @@ const reconcileCSV = async (req, res) => {
                     }
                 }
 
-                // Hapus file fisik setelah selesai dibaca
-                fs.unlinkSync(file.path);
+                // Hapus file sementara di folder uploads setelah selesai diproses
+                if (fs.existsSync(file.path)) {
+                    fs.unlinkSync(file.path);
+                }
 
                 res.status(200).json({
                     status: 'success',
